@@ -73,20 +73,104 @@ npm start
 
 ---
 
-## 🤖 Python ML Setup
+# 🤖 Sign Language Detection Module
+
+This module detects hand gestures using a Machine Learning model and converts them into text.
+
+It follows a step-by-step ML pipeline:
+
+```bash
+collect_imgs → create_dataset → train_classifier → inference_classifier → app.py
+```
+
+---
+
+## 🧠 What Each File Does
+
+### 📸 `collect_imgs.py` — Collect Data
+
+* Opens webcam
+* Captures hand gesture images
+* Stores them in the `Data/` folder
+
+👉 Use this when you want to **add new gesture data**
+
+---
+
+### 🧹 `create_dataset.py` — Process Data
+
+* Reads images from `Data/`
+* Extracts features (hand landmarks)
+* Saves processed data
+
+👉 Output:
+
+* `data.pickle`
+
+---
+
+### 🧠 `train_classifier.py` — Train Model
+
+* Uses `data.pickle`
+* Trains the machine learning model
+
+👉 Output:
+
+* `model.p`
+
+---
+
+### 🎯 `inference_classifier.py` — Test Model
+
+* Loads trained model
+* Uses webcam for real-time prediction
+
+👉 Use this to **test accuracy**
+
+---
+
+### 🚀 `app.py` — Final Application
+
+* Runs the complete system
+* Used for integration with frontend/backend
+
+---
+
+## ⚙️ Setup Guide
+
+### 🔹 Step 1: Go to Folder
 
 ```bash
 cd "ChatterHand Project/sign-language-detector-python"
 ```
 
-### 🔸 Create Virtual Environment
+---
+
+### 🔹 Step 2: Create Virtual Environment
 
 ```bash
 python -m venv venv
-venv\Scripts\activate   # Windows
 ```
 
-### 🔸 Install Dependencies
+---
+
+### 🔹 Step 3: Activate Environment
+
+#### Windows:
+
+```bash
+venv\Scripts\activate
+```
+
+#### Mac/Linux:
+
+```bash
+source venv/bin/activate
+```
+
+---
+
+### 🔹 Step 4: Install Dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -94,13 +178,52 @@ pip install -r requirements.txt
 
 ---
 
-## ▶️ Run ML Model
+## 🚀 How to Run (Step-by-Step)
+
+### ✅ First Time (Full Pipeline)
 
 ```bash
+# Step 1: Collect Data
+python collect_imgs.py
+
+# Step 2: Create Dataset
+python create_dataset.py
+
+# Step 3: Train Model
+python train_classifier.py
+
+# Step 4: Test Model
 python inference_classifier.py
+
+# Step 5: Run App
+python app.py
 ```
 
-👉 This will start the sign language detection system
+---
+
+## 🎯 When to Run What?
+
+| Situation             | What to Run            |
+| --------------------- | ---------------------- |
+| First time setup      | Run all steps          |
+| Already trained model | Run inference or app   |
+| Improve accuracy      | Collect data + retrain |
+| Demo/testing          | Run inference          |
+
+---
+
+## 🎯 Summary
+
+This module covers the full ML workflow:
+
+* Data Collection
+* Data Processing
+* Model Training
+* Real-time Testing
+* Application Integration
+
+---
+
 
 ---
 

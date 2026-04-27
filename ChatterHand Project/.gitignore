@@ -1,0 +1,62 @@
+# =========================
+# 🔹 Node.js (Frontend + Backend)
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Environment variables
+.env
+.env.*
+
+# Build folders
+dist/
+build/
+
+# =========================
+# 🔹 React (Frontend)
+# =========================
+Frontend/build/
+Frontend/.cache/
+
+# =========================
+# 🔹 Python (sign-language-detector)
+# =========================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# =========================
+# 🔹 Logs
+# =========================
+logs/
+*.log
+
+# =========================
+# 🔹 OS files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# 🔹 VS Code / IDE
+# =========================
+.vscode/
+.idea/
+
+# =========================
+# 🔹 Misc
+# =========================
+coverage/
+.cache/

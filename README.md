@@ -1,44 +1,45 @@
-# 🧠 ChatterHands – Sign Language Recognition System
+# ChatterHands – Sign Language Recognition System
 
-## 📌 Overview
+## Overview
 
-ChatterHands is a full-stack application that translates sign language into text using a Machine Learning model.
+ChatterHands is a full-stack application that translates sign language into text using a machine learning model.
 It combines:
 
-* 🧠 Python-based ML model for gesture recognition
-* 🌐 MERN stack (MongoDB, Express, React, Node.js) for frontend & backend
-* 🎥 Real-time interaction for user-friendly communication
+* a Python-based ML module for gesture recognition
+* a React frontend built with Vite
+* a FastAPI backend to serve predictions and connect the model to the UI
+* real-time interaction for a responsive user experience
 
 ---
 
-## 🚀 Features
+## Features
 
-* ✋ Real-time sign language detection
-* 🧾 Converts gestures into readable text
-* 🌐 Interactive frontend built with React
-* 🔗 Backend API integration with Node.js & Express
-* 🤖 Machine Learning model trained using Python
+* real-time sign language detection
+* gesture-to-text translation
+* interactive React user interface
+* FastAPI backend integration
+* machine learning model trained and packaged in Python
 
 ---
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 ChatterHands_Final_Project/
 │
 ├── ChatterHand Project/
-│   ├── Backend/                  # Node.js + Express server
-│   ├── Frontend/                # React application
-│   └── sign-language-detector-python/   # ML model (Python)
+│   ├── Backend/                        # FastAPI backend loading the trained model
+│   ├── Frontend/                       # Vite + React frontend application
+│   └── sign-language-detector-python/  # ML data collection, dataset creation, training, and model files
 │
 └── README.md
 ```
 
 ---
 
-## ⚙️ Setup Guide
+## Setup Guide
 
-### 🔹 1. Clone the Repository
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/PrabhutvaBajpai/ChatterHands_Final_Project.git
@@ -47,37 +48,40 @@ cd ChatterHands_Final_Project
 
 ---
 
-## 🖥️ Backend Setup (Node.js)
+## Backend Setup (Python + FastAPI)
 
 ```bash
 cd "ChatterHand Project/Backend"
-npm install
-npm start
+python -m venv venv
+venv\Scripts\activate  # on Windows
+# or source venv/bin/activate on macOS/Linux
+pip install -r requirements.txt
+uvicorn app:app --reload --host 0.0.0.0 --port 8000
 ```
 
-👉 Server will run on: `http://localhost:5000` (or your configured port)
+The backend runs on: `http://localhost:8000`
 
 ---
 
-## 🌐 Frontend Setup (React)
+## Frontend Setup (React + Vite)
 
 Open a new terminal:
 
 ```bash
 cd "ChatterHand Project/Frontend"
 npm install
-npm start
+npm run dev
 ```
 
-👉 Frontend runs on: `http://localhost:3000`
+The frontend runs on the port shown by Vite, typically `http://localhost:5173`.
 
 ---
 
-# 🤖 Sign Language Detection Module
+## Sign Language Detection Module
 
-This module detects hand gestures using a Machine Learning model and converts them into text.
+This module detects hand gestures using a machine learning model and converts them into text.
 
-It follows a step-by-step ML pipeline:
+The workflow is:
 
 ```bash
 collect_imgs → create_dataset → train_classifier → inference_classifier → app.py
@@ -85,60 +89,62 @@ collect_imgs → create_dataset → train_classifier → inference_classifier �
 
 ---
 
-## 🧠 What Each File Does
+## What Each File Does
 
-### 📸 `collect_imgs.py` — Collect Data
+### `collect_imgs.py` — collect data
 
-* Opens webcam
-* Captures hand gesture images
-* Stores them in the `Data/` folder
+* opens the webcam
+* captures hand gesture images
+* stores images in the `data/` folder
 
-👉 Use this when you want to **add new gesture data**
+Use this to add new training examples.
 
 ---
 
-### 🧹 `create_dataset.py` — Process Data
+### `create_dataset.py` — process data
 
-* Reads images from `Data/`
-* Extracts features (hand landmarks)
-* Saves processed data
+* loads images from `data/`
+* extracts hand landmark features
+* saves processed examples for training
 
-👉 Output:
+Output:
 
 * `data.pickle`
 
 ---
 
-### 🧠 `train_classifier.py` — Train Model
+### `train_classifier.py` — train model
 
-* Uses `data.pickle`
-* Trains the machine learning model
+* loads `data.pickle`
+* trains the classifier
 
-👉 Output:
+Output:
 
 * `model.p`
 
 ---
 
-### 🎯 `inference_classifier.py` — Test Model
+### `inference_classifier.py` — test model
 
-* Loads trained model
-* Uses webcam for real-time prediction
+* loads the trained model
+* uses the webcam for real-time prediction
 
-👉 Use this to **test accuracy**
-
----
-
-### 🚀 `app.py` — Final Application
-
-* Runs the complete system
-* Used for integration with frontend/backend
+Use this to verify model accuracy before integrating with the frontend.
 
 ---
 
-## ⚙️ Setup Guide
+### `app.py` — FastAPI integration
 
-### 🔹 Step 1: Go to Folder
+* runs the inference service
+* receives webcam frames from the frontend
+* performs landmark extraction and prediction
+* returns the predicted sign
+
+---
+
+## ML Module Setup
+
+### Step 1: go to the Python folder
 
 ```bash
 cd "ChatterHand Project/sign-language-detector-python"
@@ -146,7 +152,7 @@ cd "ChatterHand Project/sign-language-detector-python"
 
 ---
 
-### 🔹 Step 2: Create Virtual Environment
+### Step 2: create a virtual environment
 
 ```bash
 python -m venv venv
@@ -154,15 +160,15 @@ python -m venv venv
 
 ---
 
-### 🔹 Step 3: Activate Environment
+### Step 3: activate the environment
 
-#### Windows:
+Windows:
 
 ```bash
 venv\Scripts\activate
 ```
 
-#### Mac/Linux:
+macOS/Linux:
 
 ```bash
 source venv/bin/activate
@@ -170,7 +176,7 @@ source venv/bin/activate
 
 ---
 
-### 🔹 Step 4: Install Dependencies
+### Step 4: install Python dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -178,86 +184,155 @@ pip install -r requirements.txt
 
 ---
 
-## 🚀 How to Run (Step-by-Step)
+## How to Run the Full Pipeline
 
-### ✅ First Time (Full Pipeline)
+### First time setup
 
 ```bash
-# Step 1: Collect Data
+# collect training images
 python collect_imgs.py
 
-# Step 2: Create Dataset
+# prepare the dataset
 python create_dataset.py
 
-# Step 3: Train Model
+# train the model
 python train_classifier.py
 
-# Step 4: Test Model
+# test the model with webcam input
 python inference_classifier.py
 
-# Step 5: Run App
+# launch the FastAPI service
 python app.py
 ```
 
 ---
 
-## 🎯 When to Run What?
+## When to Run What
 
-| Situation             | What to Run            |
-| --------------------- | ---------------------- |
-| First time setup      | Run all steps          |
-| Already trained model | Run inference or app   |
-| Improve accuracy      | Collect data + retrain |
-| Demo/testing          | Run inference          |
-
----
-
-## 🎯 Summary
-
-This module covers the full ML workflow:
-
-* Data Collection
-* Data Processing
-* Model Training
-* Real-time Testing
-* Application Integration
+| Situation                | What to Run                          |
+|-------------------------|--------------------------------------|
+| first time setup        | run full pipeline                    |
+| model already trained   | run `inference_classifier.py` or `app.py` |
+| improve accuracy        | collect more data and retrain        |
+| demo/testing            | run `inference_classifier.py`        |
 
 ---
 
+## Summary
+
+This project includes the full machine learning workflow:
+
+* data collection
+* data processing
+* model training
+* real-time testing
+* application integration
 
 ---
 
-## 📦 Requirements
+## Requirements
 
-### 🔹 Backend & Frontend
+### Backend and frontend
 
-* Node.js (v14 or higher)
+* Node.js
 * npm
 
-### 🔹 Python
+### Python module
 
-* Python 3.8+
+* Python 3.8 or higher
 * OpenCV
 * NumPy
-* Other dependencies (in requirements.txt)
+* other dependencies listed in `requirements.txt`
 
 ---
 
-## ⚠️ Important Notes
+## Important Notes
 
-* ❌ `node_modules` and `venv` are not included (install locally)
-* ❌ Dataset may not be included if large
-* ✅ Ensure all services are running simultaneously
-
----
-
-# 🤝 Contribution Guidelines
-
-Welcome contributors! Please follow these rules to keep the project clean, organized, and easy to collaborate on.
+* `node_modules/` and `venv/` are not included in the repository
+* the dataset and model files may not be included if they are large
+* run the backend and frontend services at the same time for the application to work
 
 ---
 
-## 🌿 1. Always Work on a New Branch
+## Contribution Guidelines
+
+Follow these rules to keep the repository organized and easy to contribute to.
+
+### 1. work on a new branch
+
+Do not push directly to `main`.
+
+```bash
+git checkout -b your-branch-name
+```
+
+---
+
+### 2. keep each branch focused
+
+Use a separate branch for each type of work:
+
+* frontend changes
+* backend/API changes
+* machine learning or dataset work
+
+---
+
+### 3. use clear commit messages
+
+A consistent format helps reviewers understand your changes.
+
+Examples:
+
+```bash
+FRT-1: added header component
+BCK-1: created API endpoint
+SLS-1: updated training data
+```
+
+---
+
+### 4. push your branch
+
+```bash
+git push origin your-branch-name
+```
+
+---
+
+### 5. do not merge your own branch
+
+Leave merges to reviewers so the code can be checked first.
+
+---
+
+### 6. keep code clean
+
+* do not commit `node_modules/`
+* do not commit `venv/`
+* do not commit secrets or `.env` files
+
+---
+
+## Future improvements
+
+* deploy the model to cloud services
+* add text-to-speech output
+* improve model accuracy with additional data
+* add mobile support
+
+---
+
+## Author
+
+**Prabhutva Bajpai**
+
+---
+
+## If you like this project
+
+Give it a star on GitHub.
+
 
 ❌ Do NOT push directly to `main`
 ✅ Always create a new branch for your work
@@ -268,7 +343,7 @@ git checkout -b your-branch-name
 
 ---
 
-## 🎯 2. One Type of Work = One Branch
+##  2. One Type of Work = One Branch
 
 Each branch should focus on only **one type of work**:
 
@@ -284,7 +359,7 @@ Each branch should focus on only **one type of work**:
 
 ---
 
-## 📝 3. Follow Proper Commit Message Format
+##  3. Follow Proper Commit Message Format
 
 Use this format:
 
@@ -300,7 +375,7 @@ TYPE-ID: Short description
 
 ---
 
-### ✅ Examples:
+###  Examples:
 
 ```bash
 FRT-1: Added header component
@@ -316,7 +391,7 @@ SLS-1: Added new training data
 
 ---
 
-## 🚀 4. Push Your Branch (Not Main)
+##  4. Push Your Branch (Not Main)
 
 ```bash
 git push origin your-branch-name
@@ -347,7 +422,7 @@ git push origin your-branch-name
 
 ---
 
-## 🧠 Simple Workflow
+##  Simple Workflow
 
 ```bash
 Create branch → Make changes → Commit properly → Push → Wait for review → Merge
@@ -366,7 +441,7 @@ These rules help us:
 ---
 
 
-## 🧠 Future Improvements
+##  Future Improvements
 
 * Deploy model to cloud (AWS/GCP)
 * Add speech output (Text → Voice)

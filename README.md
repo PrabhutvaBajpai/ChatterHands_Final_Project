@@ -341,16 +341,6 @@ These rules help us:
 
 ---
 
-
-##  Future Improvements
-
-* Deploy model to cloud (AWS/GCP)
-* Add speech output (Text → Voice)
-* Improve model accuracy with more data
-* Mobile app integration
-
----
-
 ## 👨‍💻 Author
 
 **Prabhutva Bajpai**

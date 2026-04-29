@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-const VIDEO_URL = "https://www.youtube.com/embed/dQw4w9WgXcQ";
+
+const getVideoUrl = (letter: string) =>
+  new URL(`../ASL_Videos/${letter}.mp4`, import.meta.url).href;
 
 const Learn = () => {
   const [openLetter, setOpenLetter] = useState<string | null>(null);
@@ -81,12 +83,13 @@ const Learn = () => {
           </div>
           <div className="aspect-video w-full overflow-hidden rounded-b-2xl bg-black">
             {openLetter && (
-              <iframe
-                src={VIDEO_URL}
+              <video
+                src={getVideoUrl(openLetter)}
                 title={`ASL letter ${openLetter}`}
                 className="h-full w-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
+                controls
+                autoPlay
+                muted
               />
             )}
           </div>

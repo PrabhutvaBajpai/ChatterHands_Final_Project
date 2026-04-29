@@ -1,8 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Camera, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+const BACKEND_WS_URL = import.meta.env.VITE_BACKEND_WS_URL ?? "ws://localhost:8000/ws";
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
 function pickRandom(n: number) {
@@ -24,16 +25,164 @@ const Test = () => {
   const [index, setIndex] = useState(0);
   const [status, setStatus] = useState<Status>("waiting");
   const [results, setResults] = useState<TestResult[]>([]);
+  const [prediction, setPrediction] = useState<string | null>(null);
+  const [handDetected, setHandDetected] = useState(false);
+  const [connected, setConnected] = useState(false);
+  const [cameraActive, setCameraActive] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+  const captureTimerRef = useRef<number | null>(null);
+
+  const stopCamera = () => {
+    const video = videoRef.current;
+    if (video && video.srcObject instanceof MediaStream) {
+      video.srcObject.getTracks().forEach((track) => track.stop());
+      video.srcObject = null;
+    }
+  };
+
+  const stopWebSocket = () => {
+    if (captureTimerRef.current) {
+      window.clearInterval(captureTimerRef.current);
+      captureTimerRef.current = null;
+    }
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
+    setConnected(false);
+  };
+
   const score = results.filter((r) => r.correct).length;
   const isLast = index === letters.length - 1;
   const current = letters[index];
 
   useEffect(() => {
     setStatus("waiting");
+    setPrediction(null);
+    setHandDetected(false);
   }, [index]);
 
-  const simulate = (correct: boolean) => {
-    if (status !== "waiting") return;
+  useEffect(() => {
+    if (!cameraActive) {
+      stopCamera();
+      setConnected(false);
+      return;
+    }
+
+    const startCamera = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play();
+        }
+        setErrorMessage(null);
+      } catch (error) {
+        setErrorMessage("Unable to access webcam. Please allow camera access.");
+        setCameraActive(false);
+      }
+    };
+
+    startCamera();
+
+    return () => {
+      stopCamera();
+    };
+  }, [cameraActive]);
+
+  useEffect(() => {
+    if (!cameraActive) {
+      return;
+    }
+
+    const socket = new WebSocket(BACKEND_WS_URL);
+
+    socket.onopen = () => {
+      setConnected(true);
+      setErrorMessage(null);
+    };
+
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        setPrediction(data.prediction ?? null);
+        setHandDetected(Boolean(data.hand_detected));
+      } catch (error) {
+        console.error("Invalid WebSocket response", error);
+      }
+    };
+
+    socket.onclose = () => {
+      setConnected(false);
+    };
+
+    socket.onerror = () => {
+      setErrorMessage("Unable to connect to the backend. Check that the FastAPI server is running on port 8000.");
+      setConnected(false);
+    };
+
+    wsRef.current = socket;
+
+    return () => {
+      stopWebSocket();
+    };
+  }, [cameraActive]);
+
+  useEffect(() => {
+    return () => {
+      stopCamera();
+      stopWebSocket();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!connected || status !== "waiting") {
+      return;
+    }
+
+    const captureFrame = () => {
+      const video = videoRef.current;
+      const socket = wsRef.current;
+
+      if (!video || !socket || socket.readyState !== WebSocket.OPEN) {
+        return;
+      }
+
+      const width = video.videoWidth;
+      const height = video.videoHeight;
+      if (!width || !height) {
+        return;
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        return;
+      }
+
+      ctx.drawImage(video, 0, 0, width, height);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
+      socket.send(dataUrl);
+    };
+
+    captureTimerRef.current = window.setInterval(captureFrame, 700);
+    return () => {
+      if (captureTimerRef.current) {
+        window.clearInterval(captureTimerRef.current);
+      }
+    };
+  }, [connected, status]);
+
+  const submitPrediction = () => {
+    if (status !== "waiting") {
+      return;
+    }
+
+    const correct = prediction === current && handDetected;
     setStatus(correct ? "correct" : "wrong");
     setResults((r) => [...r, { letter: current, correct }]);
   };
@@ -106,59 +255,65 @@ const Test = () => {
               <div className="mb-3 flex items-center justify-between px-2">
                 <p className="text-sm font-semibold">Your Camera</p>
                 <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <span className="h-2 w-2 animate-pulse rounded-full bg-success" />
-                  Live
+                  <span className={`h-2 w-2 rounded-full ${connected ? "bg-success" : "bg-destructive"}`} />
+                  {connected ? "Connected" : "Disconnected"}
                 </span>
               </div>
               <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-2xl bg-muted/40 ring-1 ring-border">
+                <video ref={videoRef} className="h-full w-full object-cover" muted playsInline />
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
-                <div className="relative flex flex-col items-center text-muted-foreground">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/15 text-primary">
-                    <Camera className="h-10 w-10" />
-                  </div>
-                  <p className="mt-3 font-medium text-foreground">Webcam Active</p>
-                </div>
               </div>
             </div>
 
-            {/* Status badge */}
-            <div className="mt-6 flex justify-center">
-              {status === "waiting" && (
-                <div className="inline-flex items-center gap-2 rounded-full bg-muted px-5 py-2.5 text-sm font-medium text-muted-foreground">
-                  <span className="h-2 w-2 animate-pulse rounded-full bg-muted-foreground" />
-                  Waiting for your sign...
-                </div>
-              )}
-              {status === "correct" && (
-                <div className="inline-flex animate-pop-in items-center gap-2 rounded-full bg-success px-5 py-2.5 text-sm font-semibold text-success-foreground shadow-[0_0_30px_hsl(var(--success)/0.5)]">
-                  <Check className="h-4 w-4" /> Correct! +1 point
-                </div>
-              )}
-              {status === "wrong" && (
-                <div className="inline-flex animate-pop-in items-center gap-2 rounded-full bg-destructive px-5 py-2.5 text-sm font-semibold text-destructive-foreground shadow-[0_0_30px_hsl(var(--destructive)/0.5)]">
-                  <X className="h-4 w-4" /> Incorrect! Try next one.
-                </div>
-              )}
+            <div className="mt-4 rounded-2xl border border-border bg-muted/70 p-4 text-sm text-muted-foreground">
+              <div className="mb-2 flex items-center justify-between">
+                <span>Webcam</span>
+                <span>{cameraActive ? "enabled" : "disabled"}</span>
+              </div>
+              <div className="mb-2 flex items-center justify-between">
+                <span>Backend status</span>
+                <span>{connected ? "online" : "offline"}</span>
+              </div>
+              <div className="mb-2 flex items-center justify-between">
+                <span>Detected sign</span>
+                <span>{prediction ?? "Waiting..."}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Hand detected</span>
+                <span>{handDetected ? "Yes" : "No"}</span>
+              </div>
+              {errorMessage && <p className="mt-3 text-xs text-destructive-foreground">{errorMessage}</p>}
             </div>
 
-            {/* Simulation controls (placeholder for backend) */}
-            <div className="mt-6 grid grid-cols-2 gap-3">
+            <div className="mt-6 grid gap-3">
               <Button
                 variant="outline"
-                onClick={() => simulate(true)}
-                disabled={status !== "waiting"}
-                className="border-success/50 text-success hover:bg-success/10 hover:text-success"
+                onClick={() => setCameraActive((active) => !active)}
+                className="w-full border-primary/50 text-foreground hover:bg-primary/10 hover:text-foreground"
               >
-                <Check className="mr-1 h-4 w-4" /> Simulate Correct
+                {cameraActive ? "Stop Webcam" : "Start Webcam"}
               </Button>
-              <Button
-                variant="outline"
-                onClick={() => simulate(false)}
-                disabled={status !== "waiting"}
-                className="border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive"
-              >
-                <X className="mr-1 h-4 w-4" /> Simulate Wrong
-              </Button>
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  variant="outline"
+                  onClick={submitPrediction}
+                  disabled={status !== "waiting" || !connected || !cameraActive}
+                  className="border-primary/50 text-foreground hover:bg-primary/10 hover:text-foreground"
+                >
+                  <Check className="mr-1 h-4 w-4" /> Check Sign
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setPrediction(null);
+                    setHandDetected(false);
+                    setErrorMessage(null);
+                  }}
+                  className="border-secondary/50 text-secondary hover:bg-secondary/10 hover:text-secondary"
+                >
+                  <X className="mr-1 h-4 w-4" /> Reset View
+                </Button>
+              </div>
             </div>
 
             <Button
